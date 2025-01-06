@@ -28,24 +28,14 @@ public class UserController {
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        // Электронная почта не может быть пустой и должна содержать символ @
-        if (!user.getEmail().contains("@")) {
-            log.error("Электронная почта не может быть пустой и должна содержать символ @");
-            throw new ValidationException("Поле email содержит невалидное значение");
-        }
-        // Логин не может быть пустым и содержать пробелы
-        if (user.getLogin().contains(" ")) {
-            log.error("Логин не может быть пустым и содержать пробелы");
-            throw new ValidationException("Поле login содержит невалидное значение");
-        }
+
+        // Электронная почта не может быть пустой и должна содержать спец символы: @NotNull, @NotBlank, @Email
+        // Логин не может быть пустым и содержать пробелы: @NotNull, @NotBlank, @Pattern
+        // Дата рождения не может быть в будущем: @Past
+
         // Имя для отображения может быть пустым — в таком случае будет использован логин
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
-        }
-        // Дата рождения не может быть в будущем
-        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
-            log.error("Дата рождения не может быть в будущем");
-            throw new ValidationException("Поле birthday содержит невалидное значение");
         }
         user.setId(getNextId());
         users.put(user.getId(), user);
@@ -61,25 +51,15 @@ public class UserController {
         if (users.containsKey(newUser.getId())) {
             User oldUser = users.get(newUser.getId());
             if (newUser.getEmail() != null && !newUser.getEmail().isBlank()) {
-                if (newUser.getEmail().contains("@")) {
-                    oldUser.setEmail(newUser.getEmail());
-                } else {
-                    log.error("Электронная почта должна содержать символ @");
-                    throw new ValidationException("Поле email содержит невалидное значение");
-                }
+                oldUser.setEmail(newUser.getEmail());
             }
             if (newUser.getLogin() != null && !newUser.getLogin().isBlank()) {
-                if (newUser.getLogin().contains(" ")) {
-                    log.error("Логин не может содержать пробелы");
-                    throw new ValidationException("Поле login содержит невалидное значение");
-                } else {
-                    oldUser.setLogin(newUser.getLogin());
-                }
+                oldUser.setLogin(newUser.getLogin());
             }
             if (newUser.getName() != null && !newUser.getName().isBlank()) {
                 oldUser.setName(newUser.getName());
             }
-            if (newUser.getBirthday() != null && newUser.getBirthday().isBefore(LocalDate.now())) {
+            if (newUser.getBirthday() != null) {
                 oldUser.setBirthday(newUser.getBirthday());
             }
             return oldUser;

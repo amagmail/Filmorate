@@ -28,26 +28,16 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        // Название не может быть пустым
-        if (film.getName() == null || film.getName().isBlank()) {
-            log.error("Название не может быть пустым");
-            throw new ValidationException("Поле name содержит невалидное значение");
-        }
-        // Максимальная длина описания — 200 символов
-        if (film.getDescription() != null && film.getDescription().length() > 200) {
-            log.error("Максимальная длина описания не должна превышать 200 символов");
-            throw new ValidationException("Поле description содержит невалидное значение");
-        }
+
+        // Название не может быть пустым: @NotNull, @NotBlank
+        // Максимальная длина описания — 200 символов: @Size(max = 200)
+        // Продолжительность фильма должна быть положительным числом: @Positive
+
         // Дата релиза — не раньше 28 декабря 1895 года
         LocalDate date = LocalDate.of(1895, 12, 28);
         if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(LocalDate.from(date))) {
             log.error("Дата релиза не может быть раньше 28 декабря 1895 года");
             throw new ValidationException("Поле releaseDate содержит невалидное значение");
-        }
-        // Продолжительность фильма должна быть положительным числом
-        if (film.getDuration() != null && film.getDuration() < 0) {
-            log.error("Продолжительность фильма должна быть положительным числом");
-            throw new ValidationException("Поле duration содержит невалидное значение");
         }
         film.setId(getNextId());
         films.put(film.getId(), film);
@@ -66,12 +56,10 @@ public class FilmController {
                 oldFilm.setName(newFilm.getName());
             }
             if (newFilm.getDescription() != null && !newFilm.getDescription().isBlank()) {
-                if (newFilm.getDescription().length() > 200) {
-                    log.error("Максимальная длина описания не должна превышать 200 символов");
-                    throw new ValidationException("Поле description содержит невалидное значение");
-                } else {
-                    oldFilm.setDescription(newFilm.getDescription());
-                }
+                oldFilm.setDescription(newFilm.getDescription());
+            }
+            if (newFilm.getDuration() != null) {
+                oldFilm.setDuration(newFilm.getDuration());
             }
             if (newFilm.getReleaseDate() != null) {
                 LocalDate date = LocalDate.of(1895, 12, 28);
@@ -80,14 +68,6 @@ public class FilmController {
                     throw new ValidationException("Поле releaseDate содержит невалидное значение");
                 } else {
                     oldFilm.setReleaseDate(newFilm.getReleaseDate());
-                }
-            }
-            if (newFilm.getDuration() != null) {
-                if (newFilm.getDuration() > 0) {
-                    oldFilm.setDuration(newFilm.getDuration());
-                } else {
-                    log.error("Продолжительность фильма должна быть положительным числом");
-                    throw new ValidationException("Поле duration содержит невалидное значение");
                 }
             }
             return oldFilm;
