@@ -1,16 +1,20 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.model.User;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 public class UserValidationTests {
 
-    /*
     @Test
-    public void CheckUserCreate() {
+    public void userCreateTests() {
 
-        System.out.println(">> Создать пользователя");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        User user = new User();
-        user.setLogin("USER");
-        user.setEmail("USER@mail.ru");
+        User user = new User("USER", "USER@mail.ru");
         user.setBirthday(LocalDate.parse("1950-01-01", formatter));
         System.out.println(user);
 
@@ -20,9 +24,12 @@ public class UserValidationTests {
         User u2 = controller.create(user);
         System.out.println(u2);
 
+        LocalDate dateTo = LocalDate.now();
+        Assertions.assertTrue(u1.getBirthday().isBefore(dateTo));
+        Assertions.assertNotNull(u1.getLogin());
+        Assertions.assertNotNull(u1.getEmail());
         Assertions.assertEquals(u1.getLogin(), u1.getName(), "Ошибка валидации");
-        Assertions.assertEquals(u2.getLogin(), u2.getName(), "Ошибка валидации");
-        Assertions.assertEquals(controller.findAll().size(),  2);
-    } */
+        Assertions.assertEquals(controller.findAll().size(),  2, "Ошибка валидации");
+    }
 
 }

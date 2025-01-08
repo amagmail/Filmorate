@@ -1,15 +1,20 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.controller.FilmController;
+import ru.yandex.practicum.filmorate.model.Film;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 public class FilmValidationTests {
 
-    /*
     @Test
-    public void CheckFilmCreate() {
+    public void filmCreateTests() {
 
-        System.out.println(">> Создать фильм");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        Film film = new Film();
-        film.setName("TEXT");
+        Film film = new Film("TEXT");
         film.setDescription("TEXT");
         film.setReleaseDate(LocalDate.parse("1995-12-28", formatter));
         film.setDuration(100);
@@ -25,7 +30,7 @@ public class FilmValidationTests {
         Assertions.assertFalse(f1.getReleaseDate().isBefore(LocalDate.from(dateFrom)));
         Assertions.assertTrue(f1.getDuration() > 0);
         Assertions.assertNotNull(f1.getName());
-        Assertions.assertEquals(controller.findAll().size(),  2);
-    } */
+        Assertions.assertEquals(controller.findAll().size(),  2, "Ошибка валидации");
+    }
 
 }

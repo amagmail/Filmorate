@@ -25,4 +25,9 @@ public class User {
     @Past
     private LocalDate birthday;
 
+    public User(String login, String email) {
+        this.login = login;
+        this.email = email;
+    }
+
 }
