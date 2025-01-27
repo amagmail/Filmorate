@@ -1,10 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.annotation.AfterHistDate;
 import java.time.LocalDate;
@@ -32,10 +29,7 @@ public class Film {
         this.name = name;
     }
 
-    /*
-    @JsonProperty("duration")
-    public Duration getDurationFromMinutes() {
-        return Duration.ofMinutes(duration);
-    } */
+    public Film() {
 
+    }
 }

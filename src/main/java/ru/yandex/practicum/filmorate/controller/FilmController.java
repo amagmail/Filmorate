@@ -1,28 +1,26 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+@Slf4j
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/films")
 public class FilmController {
 
-    private final Map<Long, Film> films = new HashMap<>();
-    private final Logger log = LoggerFactory.getLogger(FilmController.class);
+    private final FilmService filmService;
 
     @GetMapping
     public Collection<Film> findAll() {
-        return films.values();
+        return filmService.findAll();
     }
 
     @PostMapping
@@ -33,9 +31,7 @@ public class FilmController {
         // Продолжительность фильма должна быть положительным числом: @Positive
         // Дата релиза — не раньше 28 декабря 1895 года
 
-        film.setId(getNextId());
-        films.put(film.getId(), film);
-        return film;
+        return filmService.create(film);
     }
 
     @PutMapping
@@ -44,34 +40,9 @@ public class FilmController {
             log.error("Идентификатор фильма не может быть пустым");
             throw new ValidationException("Поле id содержит невалидное значение");
         }
-        if (films.containsKey(newFilm.getId())) {
-            Film oldFilm = films.get(newFilm.getId());
-            if (newFilm.getName() != null && !newFilm.getName().isBlank()) {
-                oldFilm.setName(newFilm.getName());
-            }
-            if (newFilm.getDescription() != null && !newFilm.getDescription().isBlank()) {
-                oldFilm.setDescription(newFilm.getDescription());
-            }
-            if (newFilm.getDuration() != null) {
-                oldFilm.setDuration(newFilm.getDuration());
-            }
-            if (newFilm.getReleaseDate() != null) {
-                oldFilm.setReleaseDate(newFilm.getReleaseDate());
-            }
-            return oldFilm;
-        }
-        log.error("Фильм с идентификатором " + newFilm.getId() + " не найден");
-        throw new NotFoundException("Фильм с идентификатором " + newFilm.getId() + " не найден");
+        return filmService.update(newFilm);
     }
 
-    // Вспомогательный метод для генерации идентификатора объекта
-    private long getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
-    }
+
 
 }

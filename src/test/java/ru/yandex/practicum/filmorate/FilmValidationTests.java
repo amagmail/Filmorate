@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -13,6 +15,7 @@ public class FilmValidationTests {
     @Test
     public void filmCreateTests() {
 
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         Film film = new Film("TEXT");
         film.setDescription("TEXT");
@@ -20,7 +23,10 @@ public class FilmValidationTests {
         film.setDuration(100);
         System.out.println(film);
 
-        FilmController controller = new FilmController();
+        InMemoryFilmStorage storage = new InMemoryFilmStorage();
+        FilmService service = new FilmService(storage);
+        FilmController controller = new FilmController(service);
+
         Film f1 = controller.create(film);
         System.out.println(f1);
         Film f2 = controller.create(film);
