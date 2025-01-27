@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.storage.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
@@ -45,8 +47,17 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> findAll() {
+    public Collection<User> getItems() {
         return users.values();
+    }
+
+    @Override
+    public User getItem(Long userId) {
+        if (!users.containsKey(userId)) {
+            log.error("Пользователя с идентификатором " + userId + " не существует");
+            throw new ValidationException("Пользователя с идентификатором " + userId + " не существует");
+        }
+        return users.get(userId);
     }
 
     // Вспомогательный метод для генерации идентификатора объекта

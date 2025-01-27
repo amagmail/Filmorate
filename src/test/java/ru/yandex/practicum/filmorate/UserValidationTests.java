@@ -34,7 +34,7 @@ public class UserValidationTests {
         Assertions.assertNotNull(u1.getLogin());
         Assertions.assertNotNull(u1.getEmail());
         Assertions.assertEquals(u1.getLogin(), u1.getName(), "Ошибка валидации");
-        Assertions.assertEquals(controller.findAll().size(),  2, "Ошибка валидации");
+        Assertions.assertEquals(controller.getItems().size(),  2, "Ошибка валидации");
     }
 
 }

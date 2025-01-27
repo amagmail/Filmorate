@@ -36,7 +36,7 @@ public class FilmValidationTests {
         Assertions.assertFalse(f1.getReleaseDate().isBefore(LocalDate.from(dateFrom)));
         Assertions.assertTrue(f1.getDuration() > 0);
         Assertions.assertNotNull(f1.getName());
-        Assertions.assertEquals(controller.findAll().size(),  2, "Ошибка валидации");
+        Assertions.assertEquals(controller.getItems().size(),  2, "Ошибка валидации");
     }
 
 }

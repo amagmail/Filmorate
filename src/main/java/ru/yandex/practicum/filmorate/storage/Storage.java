@@ -10,6 +10,8 @@ public interface Storage<T> {
 
     T update(T entity);
 
-    Collection<T> findAll();
+    T getItem(Long id);
+
+    Collection<T> getItems();
 
 }

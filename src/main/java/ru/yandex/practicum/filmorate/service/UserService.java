@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -21,8 +22,12 @@ public class UserService {
         return userStorage.update(user);
     }
 
-    public Collection<User> findAll() {
-        return userStorage.findAll();
+    public Collection<User> getItems() {
+        return userStorage.getItems();
+    }
+
+    public User getItem(Long userId){
+        return userStorage.getItem(userId);
     }
 
 }

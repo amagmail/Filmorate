@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +19,14 @@ public class UserController {
 
     private final UserService userService;
 
+    @GetMapping("/{userId}")
+    public User getItem(@PathVariable("userId") Long userId){
+        return userService.getItem(userId);
+    }
+
     @GetMapping
-    public Collection<User> findAll() {
-        return userService.findAll();
+    public Collection<User> getItems() {
+        return userService.getItems();
     }
 
     @PostMapping
