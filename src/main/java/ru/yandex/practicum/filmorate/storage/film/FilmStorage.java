@@ -9,7 +9,9 @@ import java.util.Set;
 public interface FilmStorage extends Storage<Film> {
 
     Set<Long> setLike(Long filmId, Long userId);
+
     Set<Long> removeLike(Long filmId, Long userId);
+
     List<Film> getPopular(int count);
 
 }

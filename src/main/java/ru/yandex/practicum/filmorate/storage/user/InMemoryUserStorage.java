@@ -24,7 +24,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Set<Long> removeFriend(Long userId, Long friendId){
+    public Set<Long> removeFriend(Long userId, Long friendId) {
         User user1 = getItem(userId);
         User user2 = getItem(friendId);
         user1.getFriends().remove(user2.getId());
@@ -49,6 +49,9 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User create(User entity) {
+        if (entity.getName() == null || entity.getName().isBlank()) {
+            entity.setName(entity.getLogin());
+        }
         entity.setId(getNextId());
         users.put(entity.getId(), entity);
         return entity;
@@ -56,6 +59,10 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User update(User entity) {
+        if (entity.getId() == null) {
+            log.error("Идентификатор пользователя не может быть пустым");
+            throw new ValidationException("Поле id содержит невалидное значение");
+        }
         if (users.containsKey(entity.getId())) {
             User oldUser = users.get(entity.getId());
             if (entity.getEmail() != null && !entity.getEmail().isBlank()) {

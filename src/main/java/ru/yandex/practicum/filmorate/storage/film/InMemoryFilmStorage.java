@@ -45,6 +45,10 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film update(Film entity) {
+        if (entity.getId() == null) {
+            log.error("Идентификатор фильма не может быть пустым");
+            throw new ValidationException("Поле id содержит невалидное значение");
+        }
         if (films.containsKey(entity.getId())) {
             Film oldFilm = films.get(entity.getId());
             if (entity.getName() != null && !entity.getName().isBlank()) {

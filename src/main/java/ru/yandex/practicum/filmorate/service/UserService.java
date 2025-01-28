@@ -18,7 +18,7 @@ public class UserService {
         return userStorage.setFriend(userId, friendId);
     }
 
-    public Set<Long> removeFriend(Long userId, Long friendId){
+    public Set<Long> removeFriend(Long userId, Long friendId) {
         return userStorage.removeFriend(userId, friendId);
     }
 
