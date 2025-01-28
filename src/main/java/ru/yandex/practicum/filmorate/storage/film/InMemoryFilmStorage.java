@@ -78,7 +78,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film getItem(Long filmId) {
         if (!films.containsKey(filmId)) {
             log.error("Фильма с идентификатором " + filmId + " не существует");
-            throw new ValidationException("Фильма с идентификатором " + filmId + " не существует");
+            throw new NotFoundException("Фильма с идентификатором " + filmId + " не существует");
         }
         return films.get(filmId);
     }

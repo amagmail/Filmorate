@@ -92,7 +92,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User getItem(Long userId) {
         if (!users.containsKey(userId)) {
             log.error("Пользователя с идентификатором " + userId + " не существует");
-            throw new ValidationException("Пользователя с идентификатором " + userId + " не существует");
+            throw new NotFoundException("Пользователя с идентификатором " + userId + " не существует");
         }
         return users.get(userId);
     }
