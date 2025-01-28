@@ -6,15 +6,35 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
 
     private final Map<Long, Film> films = new HashMap<>();
+
+    @Override
+    public Set<Long> setLike(Long filmId, Long userId) {
+        Film film = getItem(filmId);
+        film.getLikes().add(userId);
+        return film.getLikes();
+    }
+
+    @Override
+    public Set<Long> removeLike(Long filmId, Long userId) {
+        Film film = getItem(filmId);
+        film.getLikes().remove(userId);
+        return film.getLikes();
+    }
+
+    @Override
+    public List<Film> getPopular(int count) {
+        return getItems().stream()
+                .sorted(Film::compareLikes)
+                .limit(count)
+                .toList();
+    }
 
     @Override
     public Film create(Film entity) {

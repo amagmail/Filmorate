@@ -4,18 +4,48 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Long, User> users = new HashMap<>();
+
+    @Override
+    public Set<Long> setFriend(Long userId, Long friendId) {
+        User user1 = getItem(userId);
+        User user2 = getItem(friendId);
+        user1.getFriends().add(user2.getId());
+        user2.getFriends().add(user1.getId());
+        return user1.getFriends();
+    }
+
+    @Override
+    public Set<Long> removeFriend(Long userId, Long friendId){
+        User user1 = getItem(userId);
+        User user2 = getItem(friendId);
+        user1.getFriends().remove(user2.getId());
+        user2.getFriends().remove(user1.getId());
+        return user1.getFriends();
+    }
+
+    @Override
+    public Set<Long> getUserFriends(Long userId) {
+        User user = getItem(userId);
+        return user.getFriends();
+    }
+
+    @Override
+    public Set<Long> getMotualFriends(Long userId, Long otherId) {
+        User user1 = getItem(userId);
+        User user2 = getItem(otherId);
+        Set<Long> mutualFriends = new HashSet<>(user1.getFriends());
+        mutualFriends.retainAll(user2.getFriends());
+        return mutualFriends;
+    }
 
     @Override
     public User create(User entity) {

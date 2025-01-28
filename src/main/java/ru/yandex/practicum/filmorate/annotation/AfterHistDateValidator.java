@@ -10,7 +10,7 @@ public class AfterHistDateValidator implements ConstraintValidator<AfterHistDate
 
     @Override
     public void initialize(AfterHistDate constraintAnnotation) {
-        dateFrom =  LocalDate.of(1895, 12, 28);
+        dateFrom = LocalDate.of(1895, 12, 28);
     }
 
     @Override
