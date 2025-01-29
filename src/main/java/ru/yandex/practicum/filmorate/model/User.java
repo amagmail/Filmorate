@@ -12,7 +12,7 @@ public class User {
 
     private Long id;
     private String name;
-    private Set<Long> friends;
+    private Set<Long> friends = new HashSet<>();
 
     @NotNull
     @NotBlank
@@ -31,6 +31,6 @@ public class User {
     public User(String login, String email) {
         this.login = login;
         this.email = email;
-        this.friends = new HashSet<>();
     }
+
 }

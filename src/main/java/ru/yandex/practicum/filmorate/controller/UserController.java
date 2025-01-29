@@ -3,9 +3,6 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import ru.yandex.practicum.filmorate.exception.ErrorResponse;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,13 +29,13 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/friends")
-    public Set<Long> getUserFriends(@PathVariable("userId") Long userId) {
+    public Collection<User> getUserFriends(@PathVariable("userId") Long userId) {
         return userService.getUserFriends(userId);
     }
 
     @GetMapping("/{userId}/friends/common/{otherId}")
-    public Set<Long> getMotualFriends(@PathVariable("userId") Long userId, @PathVariable("otherId") Long otherId) {
-        return userService.getMotualFriends(userId, otherId);
+    public Collection<User> getMutualFriends(@PathVariable("userId") Long userId, @PathVariable("otherId") Long otherId) {
+        return userService.getMutualFriends(userId, otherId);
     }
 
     @GetMapping("/{userId}")
@@ -66,30 +63,4 @@ public class UserController {
         return userService.update(newUser);
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidation(final ValidationException e) {
-        return new ErrorResponse(
-                "Ошибка валидации",
-                e.getMessage()
-        );
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFound(final NotFoundException e) {
-        return new ErrorResponse(
-                "Искомый объект не найден",
-                e.getMessage()
-        );
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleException(final RuntimeException e) {
-        return new ErrorResponse(
-                "Возникло исключение",
-                e.getMessage()
-        );
-    }
 }

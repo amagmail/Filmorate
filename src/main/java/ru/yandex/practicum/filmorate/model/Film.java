@@ -12,7 +12,7 @@ import java.util.Set;
 public class Film {
 
     private Long id;
-    private Set<Long> likes;
+    private Set<Long> likes = new HashSet<>();
 
     @NotNull
     @NotBlank
@@ -30,14 +30,14 @@ public class Film {
 
     public Film(String name) {
         this.name = name;
-        this.likes = new HashSet<>();
     }
 
     public Film() {
-        this.likes = new HashSet<>();
+
     }
 
     public static int compareLikes(Film f1, Film f2) {
         return f2.likes.size() - f1.likes.size();
     }
+
 }

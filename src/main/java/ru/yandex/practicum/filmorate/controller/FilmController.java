@@ -3,14 +3,10 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import ru.yandex.practicum.filmorate.exception.ErrorResponse;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -33,7 +29,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopular(@RequestParam(value = "count", defaultValue = "10") int count) {
+    public Collection<Film> getPopular(@RequestParam(value = "count", defaultValue = "10") int count) {
         return filmService.getPopular(count);
     }
 
@@ -62,30 +58,4 @@ public class FilmController {
         return filmService.update(newFilm);
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidation(final ValidationException e) {
-        return new ErrorResponse(
-                "Ошибка валидации",
-                e.getMessage()
-        );
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFound(final NotFoundException e) {
-        return new ErrorResponse(
-                "Искомый объект не найден",
-                e.getMessage()
-        );
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleException(final RuntimeException e) {
-        return new ErrorResponse(
-                "Возникло исключение",
-                e.getMessage()
-        );
-    }
 }

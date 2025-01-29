@@ -1,13 +1,11 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
 
-@Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
 
@@ -28,7 +26,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopular(int count) {
+    public Collection<Film> getPopular(int count) {
         return getItems().stream()
                 .sorted(Film::compareLikes)
                 .limit(count)
@@ -60,7 +58,6 @@ public class InMemoryFilmStorage implements FilmStorage {
             }
             return oldFilm;
         }
-        log.error("Фильм с идентификатором " + entity.getId() + " не найден");
         throw new NotFoundException("Фильм с идентификатором " + entity.getId() + " не найден");
     }
 
@@ -72,7 +69,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film getItem(Long filmId) {
         if (!films.containsKey(filmId)) {
-            log.error("Фильма с идентификатором " + filmId + " не существует");
             throw new NotFoundException("Фильма с идентификатором " + filmId + " не существует");
         }
         return films.get(filmId);
@@ -86,4 +82,5 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .orElse(0);
         return ++currentMaxId;
     }
+
 }

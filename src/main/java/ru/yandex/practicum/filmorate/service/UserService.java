@@ -23,12 +23,12 @@ public class UserService {
         return userStorage.removeFriend(userId, friendId);
     }
 
-    public Set<Long> getUserFriends(Long userId) {
+    public Collection<User> getUserFriends(Long userId) {
         return userStorage.getUserFriends(userId);
     }
 
-    public Set<Long> getMotualFriends(Long userId, Long otherId) {
-        return userStorage.getMotualFriends(userId, otherId);
+    public Collection<User> getMutualFriends(Long userId, Long otherId) {
+        return userStorage.getMutualFriends(userId, otherId);
     }
 
     public User create(User user) {

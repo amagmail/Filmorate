@@ -1,13 +1,11 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
 
-@Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
 
@@ -32,18 +30,21 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Set<Long> getUserFriends(Long userId) {
-        User user = getItem(userId);
-        return user.getFriends();
+    public Collection<User> getUserFriends(Long userId) {
+        return getItem(userId).getFriends().stream()
+                .map(users::get)
+                .toList();
     }
 
     @Override
-    public Set<Long> getMotualFriends(Long userId, Long otherId) {
+    public Collection<User> getMutualFriends(Long userId, Long otherId) {
         User user1 = getItem(userId);
         User user2 = getItem(otherId);
         Set<Long> mutualFriends = new HashSet<>(user1.getFriends());
         mutualFriends.retainAll(user2.getFriends());
-        return mutualFriends;
+        return mutualFriends.stream()
+                .map(users::get)
+                .toList();
     }
 
     @Override
@@ -74,7 +75,6 @@ public class InMemoryUserStorage implements UserStorage {
             }
             return oldUser;
         }
-        log.error("Пользователь с идентификатором " + entity.getId() + " не найден");
         throw new NotFoundException("Пользователь с идентификатором " + entity.getId() + " не найден");
     }
 
@@ -86,7 +86,6 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User getItem(Long userId) {
         if (!users.containsKey(userId)) {
-            log.error("Пользователя с идентификатором " + userId + " не существует");
             throw new NotFoundException("Пользователя с идентификатором " + userId + " не существует");
         }
         return users.get(userId);
@@ -101,4 +100,5 @@ public class InMemoryUserStorage implements UserStorage {
                 .orElse(0);
         return ++currentMaxId;
     }
+
 }
