@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
@@ -45,10 +44,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film update(Film entity) {
-        if (entity.getId() == null) {
-            log.error("Идентификатор фильма не может быть пустым");
-            throw new ValidationException("Поле id содержит невалидное значение");
-        }
         if (films.containsKey(entity.getId())) {
             Film oldFilm = films.get(entity.getId());
             if (entity.getName() != null && !entity.getName().isBlank()) {

@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -15,7 +16,6 @@ public class FilmValidationTests {
     @Test
     public void filmCreateTests() {
 
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         Film film = new Film("TEXT");
         film.setDescription("TEXT");
@@ -23,8 +23,9 @@ public class FilmValidationTests {
         film.setDuration(100);
         System.out.println(film);
 
-        InMemoryFilmStorage storage = new InMemoryFilmStorage();
-        FilmService service = new FilmService(storage);
+        InMemoryFilmStorage filmStorage = new InMemoryFilmStorage();
+        InMemoryUserStorage userStorage = new InMemoryUserStorage();
+        FilmService service = new FilmService(filmStorage, userStorage);
         FilmController controller = new FilmController(service);
 
         Film f1 = controller.create(film);
