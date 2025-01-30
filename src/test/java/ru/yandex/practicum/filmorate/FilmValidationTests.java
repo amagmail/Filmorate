@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -20,7 +23,11 @@ public class FilmValidationTests {
         film.setDuration(100);
         System.out.println(film);
 
-        FilmController controller = new FilmController();
+        InMemoryFilmStorage filmStorage = new InMemoryFilmStorage();
+        InMemoryUserStorage userStorage = new InMemoryUserStorage();
+        FilmService service = new FilmService(filmStorage, userStorage);
+        FilmController controller = new FilmController(service);
+
         Film f1 = controller.create(film);
         System.out.println(f1);
         Film f2 = controller.create(film);
@@ -30,7 +37,7 @@ public class FilmValidationTests {
         Assertions.assertFalse(f1.getReleaseDate().isBefore(LocalDate.from(dateFrom)));
         Assertions.assertTrue(f1.getDuration() > 0);
         Assertions.assertNotNull(f1.getName());
-        Assertions.assertEquals(controller.findAll().size(),  2, "Ошибка валидации");
+        Assertions.assertEquals(controller.getItems().size(),  2, "Ошибка валидации");
     }
 
 }

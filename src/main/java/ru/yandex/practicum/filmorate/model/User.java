@@ -4,12 +4,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
 
     private Long id;
     private String name;
+    private Set<Long> friends = new HashSet<>();
 
     @NotNull
     @NotBlank
