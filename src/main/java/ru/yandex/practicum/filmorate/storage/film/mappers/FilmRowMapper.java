@@ -6,6 +6,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
@@ -20,6 +22,12 @@ public class FilmRowMapper implements RowMapper<Film> {
         film.setDuration(resultSet.getInt("duration"));
         film.setGenre(resultSet.getInt("genre"));
         film.setMpa(resultSet.getInt("mpa"));
+
+        Set<Long> likes = new HashSet<>();
+        long cnt = resultSet.getLong("likes");
+        likes.add(cnt);
+        film.setLikes(likes);
+
         return film;
     }
 

@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -11,8 +10,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 @Primary
 @Component
@@ -21,12 +19,19 @@ public class InDatabaseFilmStorage implements FilmStorage {
     private final JdbcTemplate jdbc;
     private final RowMapper<Film> mapper;
 
-    private static final String GET_ITEMS = "select * from films";
-    private static final String GET_ITEM = "select * from films where id = ?";
+    private static final String GET_ITEMS = "select *, (select count(user_id) from likes where film_id = id) as likes from films";
+    private static final String GET_ITEM = "select *, (select count(user_id) from likes where film_id = id) as likes from films where id = ?";
     private static final String INSERT_QUERY = "insert into films(name, description, release_date, duration, genre, mpa) values (?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "update films set name = ?, description = ?, release_date = ?, duration = ?, genre = ?, mpa = ? where id = ?";
     private static final String SET_LIKE = "insert into likes(film_id, user_id) values(?, ?)";
-    private static final String REMOVE_LIKE = "delete from likes WHERE film_id = ? and user_id = ?";
+    private static final String REMOVE_LIKE = "delete from likes where film_id = ? and user_id = ?";
+    private static final String GET_LIKES = "select user_id from likes where film_id = ?";
+    private static final String GET_POPULAR = "select t1.*, count(t2.user_id) as likes " +
+            "from films t1 " +
+            "left join likes t2 on t2.film_id = t1.id " +
+            "group by t1.id " +
+            "order by likes desc " +
+            "limit ?";
 
     public InDatabaseFilmStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         this.jdbc = jdbc;
@@ -72,24 +77,43 @@ public class InDatabaseFilmStorage implements FilmStorage {
 
     @Override
     public Film getItem(Long filmId) {
+        /*
+        Film film = jdbc.queryForObject(GET_ITEM, mapper, filmId);
+        if (film != null) {
+            Set<Long> likes = getLikes(filmId);
+            film.setLikes(likes);
+        } */
         return jdbc.queryForObject(GET_ITEM, mapper, filmId);
     }
 
     @Override
     public Set<Long> setLike(Long filmId, Long userId) {
-        //jdbc.update(SET_LIKE, filmId, userId);
-        return null;
+        Set<Long> likes = getLikes(filmId);
+        if (!likes.contains(userId)) {
+            int rowsUpdated = jdbc.update(SET_LIKE, filmId, userId);
+            if (rowsUpdated > 0) {
+                likes.add(userId);
+            }
+        }
+        return likes;
     }
 
     @Override
     public Set<Long> removeLike(Long filmId, Long userId) {
-        //jdbc.update(REMOVE_LIKE, filmId, userId);
-        return null;
+        jdbc.update(REMOVE_LIKE, filmId, userId);
+        return getLikes(filmId);
     }
 
     @Override
     public Collection<Film> getPopular(int count) {
-        return null;
+        Collection<Film> data = jdbc.query(GET_POPULAR, mapper, count);
+        System.out.println(data);
+        return data;
+    }
+
+    public Set<Long> getLikes(Long filmId) {
+        List<Long> userIds = jdbc.queryForList(GET_LIKES, Long.class, filmId);
+        return new HashSet<>(userIds);
     }
 
 }
