@@ -17,6 +17,11 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    /*
+    public FilmService(@Qualifier("inDatabaseFilmStorage") FilmStorage filmStorage, @Qualifier("inDatabaseUserStorage") UserStorage userStorage) {
+        this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
+    } */
 
     public Set<Long> setLike(Long filmId, Long userId) {
         if (userStorage.getItem(userId) == null) {

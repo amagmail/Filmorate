@@ -17,7 +17,7 @@ create table if not exists users (
 create table if not exists friendship (
     user_id bigint,
     friend_id bigint,
-    accepted boolean
+    accepted boolean default false
 );
 create table if not exists likes (
     user_id bigint,

@@ -41,6 +41,16 @@ public class InDatabaseUserStorage implements UserStorage {
             "where id in (select friend_id from friendship where user_id = ?) " +
             "and id in (select friend_id from friendship where user_id = ?)";
 
+    private static final String ACTUALIZE_FRIENDSHIPS_TRUE = "update friendship set accepted = true " +
+            "where ((user_id = ? and friend_id = ?) or (user_id = ? and friend_id = ?)) " +
+            "and exists(select user_id, friend_id from friendship where user_id = ? and friend_id = ?) " +
+            "and exists(select user_id, friend_id from friendship where user_id = ? and friend_id = ?)";
+
+    private static final String ACTUALIZE_FRIENDSHIPS_FALSE = "update friendship set accepted = false " +
+            "where ((user_id = ? and friend_id = ?) or (user_id = ? and friend_id = ?)) " +
+            "and (not exists(select user_id, friend_id from friendship where user_id = ? and friend_id = ?) " +
+            "or not exists(select user_id, friend_id from friendship where user_id = ? and friend_id = ?))";
+
     public InDatabaseUserStorage(JdbcTemplate jdbc, RowMapper<User> mapper) {
         this.jdbc = jdbc;
         this.mapper = mapper;
@@ -96,6 +106,7 @@ public class InDatabaseUserStorage implements UserStorage {
             int rowsUpdated = jdbc.update(SET_FRIEND, userId, friendId);
             if (rowsUpdated > 0) {
                 friends.add(friendId);
+                jdbc.update(ACTUALIZE_FRIENDSHIPS_TRUE, userId, friendId, friendId, userId, userId, friendId, friendId, userId);
             }
         }
         return friends;
@@ -103,7 +114,10 @@ public class InDatabaseUserStorage implements UserStorage {
 
     @Override
     public Set<Long> removeFriend(Long userId, Long friendId) {
-        jdbc.update(REMOVE_FRIEND, userId, friendId);
+        int rowsUpdated = jdbc.update(REMOVE_FRIEND, userId, friendId);
+        if (rowsUpdated > 0) {
+            jdbc.update(ACTUALIZE_FRIENDSHIPS_FALSE, userId, friendId, friendId, userId, userId, friendId, friendId, userId);
+        }
         return getFriends(userId);
     }
 

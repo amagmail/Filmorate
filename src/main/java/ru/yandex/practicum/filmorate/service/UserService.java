@@ -14,6 +14,10 @@ import java.util.Set;
 public class UserService {
 
     private final UserStorage userStorage;
+    /*
+    public UserService(@Qualifier("inDatabaseUserStorage") UserStorage userStorage) {
+        this.userStorage = userStorage;
+    } */
 
     public Set<Long> setFriend(Long userId, Long friendId) {
         return userStorage.setFriend(userId, friendId);
