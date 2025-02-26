@@ -54,6 +54,26 @@ public class InDatabaseFilmStorage implements FilmStorage {
 
     @Override
     public Film create(Film entity) {
+
+        List<Long> checkVals;
+        Mpa mpa = entity.getMpa();
+        Long mpaId = (mpa != null) ? mpa.getId() : null;
+        if (mpaId != null) {
+            checkVals = DatabaseUtils.getExistRows(jdbc, "mpa", List.of(mpaId));
+            if (checkVals.isEmpty()) {
+                throw new NotFoundException("Не удалось найти жанры по идентификаторам");
+            }
+        }
+
+        Set<Long> genreIds = new HashSet<>();
+        for (Genre genre : entity.getGenres()) {
+            genreIds.add(genre.getId());
+        }
+        checkVals = DatabaseUtils.getExistRows(jdbc, "mpa", new ArrayList<>(genreIds));
+        if (checkVals.size() != genreIds.size()) {
+            throw new NotFoundException("Не удалось найти жанры по идентификаторам");
+        }
+
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(INSERT_ITEM, Statement.RETURN_GENERATED_KEYS);
@@ -61,18 +81,14 @@ public class InDatabaseFilmStorage implements FilmStorage {
             ps.setObject(2, entity.getDescription());
             ps.setObject(3, entity.getReleaseDate());
             ps.setObject(4, entity.getDuration());
-
-            Mpa mpa = entity.getMpa();
-            Long mpaId = (mpa != null) ? mpa.getId() : null;
             ps.setObject(5, mpaId);
-
             return ps;
         }, keyHolder);
         Long id = keyHolder.getKeyAs(Long.class);
         if (id != null) {
             entity.setId(id);
-            for (Genre genre : entity.getGenres()) {
-                jdbc.update(SET_GENRE, id, genre.getId());
+            for (Long genreId : genreIds) {
+                jdbc.update(SET_GENRE, id, genreId);
             }
             return entity;
         } else {
@@ -132,7 +148,7 @@ public class InDatabaseFilmStorage implements FilmStorage {
     public Set<Long> getLikes(Long filmId) {
         List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "films", List.of(filmId));
         if (checkVals.isEmpty()) {
-            throw new NotFoundException("Не удалось найти фильмы по идентификаторам: " + List.of(filmId));
+            throw new NotFoundException("Не удалось найти фильмы по идентификаторам");
         }
         List<Long> userIds = jdbc.queryForList(GET_LIKES, Long.class, filmId);
         return new HashSet<>(userIds);

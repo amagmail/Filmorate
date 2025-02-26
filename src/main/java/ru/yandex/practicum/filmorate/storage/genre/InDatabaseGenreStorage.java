@@ -43,7 +43,7 @@ public class InDatabaseGenreStorage implements GenreStorage {
     public Genre getItem(Long id) {
         List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "genres", List.of(id));
         if (checkVals.isEmpty()) {
-            throw new NotFoundException("Не удалось найти жанры по идентификаторам: " + List.of(id));
+            throw new NotFoundException("Не удалось найти жанры по идентификаторам");
         }
         return jdbc.queryForObject(GET_ITEM, mapper, id);
     }

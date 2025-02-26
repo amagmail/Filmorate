@@ -44,7 +44,7 @@ public class FilmRowMapper implements RowMapper<Film> {
                 for (int i = 0; i < arrIds.length; i++) {
                     Genre genre = new Genre();
                     Long genreId = Long.valueOf(arrIds[i].trim());
-                    String genreName = arrNames[i];
+                    String genreName = arrNames[i].trim();
                     genre.setId(genreId);
                     genre.setName(genreName);
                     genres.add(genre);

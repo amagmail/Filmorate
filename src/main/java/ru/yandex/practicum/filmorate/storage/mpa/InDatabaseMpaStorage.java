@@ -43,7 +43,7 @@ public class InDatabaseMpaStorage implements MpaStorage {
     public Mpa getItem(Long id) {
         List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "mpa", List.of(id));
         if (checkVals.isEmpty()) {
-            throw new NotFoundException("Не удалось найти рейтинги по идентификаторам: " + List.of(id));
+            throw new NotFoundException("Не удалось найти рейтинги по идентификаторам");
         }
         return jdbc.queryForObject(GET_ITEM, mapper, id);
     }

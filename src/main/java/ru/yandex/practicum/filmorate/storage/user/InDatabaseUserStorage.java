@@ -102,7 +102,7 @@ public class InDatabaseUserStorage implements UserStorage {
     public Set<Long> setFriend(Long userId, Long friendId) {
         List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "users", List.of(userId, friendId));
         if (checkVals.size() != 2) {
-            throw new NotFoundException("Не удалось найти пользователей по идентификаторам: " + List.of(userId, friendId));
+            throw new NotFoundException("Не удалось найти пользователей по идентификаторам");
         }
         Set<Long> friends = getFriends(userId);
         if (!friends.contains(friendId)) {
@@ -119,7 +119,7 @@ public class InDatabaseUserStorage implements UserStorage {
     public Set<Long> removeFriend(Long userId, Long friendId) {
         List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "users", List.of(userId, friendId));
         if (checkVals.size() != 2) {
-            throw new NotFoundException("Не удалось найти пользователей по идентификаторам: " + List.of(userId, friendId));
+            throw new NotFoundException("Не удалось найти пользователей по идентификаторам");
         }
         int rowsUpdated = jdbc.update(REMOVE_FRIEND, userId, friendId);
         if (rowsUpdated > 0) {
@@ -132,7 +132,7 @@ public class InDatabaseUserStorage implements UserStorage {
     public Collection<User> getUserFriends(Long userId) {
         List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "users", List.of(userId));
         if (checkVals.isEmpty()) {
-            throw new NotFoundException("Не удалось найти пользователей по идентификаторам: " + List.of(userId));
+            throw new NotFoundException("Не удалось найти пользователей по идентификаторам");
         }
         return jdbc.query(GET_USER_FRIENDS, mapper, userId);
     }
