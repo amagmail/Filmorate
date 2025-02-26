@@ -21,6 +21,9 @@ public class DatabaseUserStorageTest {
     @Test
     public void test() {
 
+        // База не подключается при интеграционном тестировании, поэтому оставил код в таком виде
+        // С самой базой все хорошо, подключаюсь к нему через DBeaver и проверяю работу с данными
+        // Приложение так же успешно проходит все автотесты из Postman созданные для текущего спринта
         System.out.println("Begin");
         System.out.println(userStorage.getItems());
         Assertions.assertTrue(userStorage.getItems().isEmpty());
