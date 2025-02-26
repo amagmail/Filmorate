@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -18,10 +19,11 @@ public class DatabaseUserStorageTest {
     private final InDatabaseUserStorage userStorage;
 
     @Test
-    public void testFindUserById() {
+    public void test() {
 
         System.out.println("Begin");
         System.out.println(userStorage.getItems());
+        Assertions.assertTrue(userStorage.getItems().isEmpty());
         System.out.println("End");
 
     }
