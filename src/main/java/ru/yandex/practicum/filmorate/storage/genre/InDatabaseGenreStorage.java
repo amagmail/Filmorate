@@ -5,9 +5,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.utils.DatabaseUtils;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -41,18 +41,11 @@ public class InDatabaseGenreStorage implements GenreStorage {
 
     @Override
     public Genre getItem(Long id) {
-        List<Long> checkVals = checkItemsQuery(List.of(id));
+        List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "genres", List.of(id));
         if (checkVals.isEmpty()) {
-            throw new NotFoundException("Не удалось найти жанр");
+            throw new NotFoundException("Не удалось найти жанры по идентификаторам: " + List.of(id));
         }
         return jdbc.queryForObject(GET_ITEM, mapper, id);
-    }
-
-    public List<Long> checkItemsQuery(List<Long> ids) {
-        String query = "select id from genres where id in (";
-        query += String.join(",", Collections.nCopies(ids.size(), "?"));
-        query += ")";
-        return jdbc.queryForList(query, Long.class, ids.toArray());
     }
 
 }

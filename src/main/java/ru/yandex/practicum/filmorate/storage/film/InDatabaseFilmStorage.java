@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.utils.DatabaseUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -97,20 +98,12 @@ public class InDatabaseFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getItems() {
-        Collection<Film> items = jdbc.query(GET_ITEMS, mapper);
-        return items;
+        return jdbc.query(GET_ITEMS, mapper);
     }
 
     @Override
     public Film getItem(Long filmId) {
-        /*
-        Film film = jdbc.queryForObject(GET_ITEM, mapper, filmId);
-        if (film != null) {
-            Set<Long> likes = getLikes(filmId);
-            film.setLikes(likes);
-        } */
-        Film film = jdbc.queryForObject(GET_ITEM, mapper, filmId);
-        return film;
+        return jdbc.queryForObject(GET_ITEM, mapper, filmId);
     }
 
     @Override
@@ -137,19 +130,12 @@ public class InDatabaseFilmStorage implements FilmStorage {
     }
 
     public Set<Long> getLikes(Long filmId) {
-        List<Long> checkVals = checkItemsQuery(List.of(filmId));
+        List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "films", List.of(filmId));
         if (checkVals.isEmpty()) {
-            throw new NotFoundException("Не удалось найти фильм");
+            throw new NotFoundException("Не удалось найти фильмы по идентификаторам: " + List.of(filmId));
         }
         List<Long> userIds = jdbc.queryForList(GET_LIKES, Long.class, filmId);
         return new HashSet<>(userIds);
-    }
-
-    public List<Long> checkItemsQuery(List<Long> ids) {
-        String query = "select id from films where id in (";
-        query += String.join(",", Collections.nCopies(ids.size(), "?"));
-        query += ")";
-        return jdbc.queryForList(query, Long.class, ids.toArray());
     }
 
 }

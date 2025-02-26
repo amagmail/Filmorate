@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.utils.DatabaseUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -99,9 +100,9 @@ public class InDatabaseUserStorage implements UserStorage {
 
     @Override
     public Set<Long> setFriend(Long userId, Long friendId) {
-        List<Long> checkVals = checkItemsQuery(List.of(userId, friendId));
+        List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "users", List.of(userId, friendId));
         if (checkVals.size() != 2) {
-            throw new NotFoundException("Не удалось найти пользователя");
+            throw new NotFoundException("Не удалось найти пользователей по идентификаторам: " + List.of(userId, friendId));
         }
         Set<Long> friends = getFriends(userId);
         if (!friends.contains(friendId)) {
@@ -116,9 +117,9 @@ public class InDatabaseUserStorage implements UserStorage {
 
     @Override
     public Set<Long> removeFriend(Long userId, Long friendId) {
-        List<Long> checkVals = checkItemsQuery(List.of(userId, friendId));
+        List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "users", List.of(userId, friendId));
         if (checkVals.size() != 2) {
-            throw new NotFoundException("Не удалось найти пользователя");
+            throw new NotFoundException("Не удалось найти пользователей по идентификаторам: " + List.of(userId, friendId));
         }
         int rowsUpdated = jdbc.update(REMOVE_FRIEND, userId, friendId);
         if (rowsUpdated > 0) {
@@ -129,9 +130,9 @@ public class InDatabaseUserStorage implements UserStorage {
 
     @Override
     public Collection<User> getUserFriends(Long userId) {
-        List<Long> checkVals = checkItemsQuery(List.of(userId));
+        List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "users", List.of(userId));
         if (checkVals.isEmpty()) {
-            throw new NotFoundException("Не удалось найти пользователя");
+            throw new NotFoundException("Не удалось найти пользователей по идентификаторам: " + List.of(userId));
         }
         return jdbc.query(GET_USER_FRIENDS, mapper, userId);
     }
@@ -145,34 +146,5 @@ public class InDatabaseUserStorage implements UserStorage {
         List<Long> userIds = jdbc.queryForList(GET_FRIENDS, Long.class, userId);
         return new HashSet<>(userIds);
     }
-
-    public List<Long> checkItemsQuery(List<Long> ids) {
-        String query = "select id from users where id in (";
-        query += String.join(",", Collections.nCopies(ids.size(), "?"));
-        query += ")";
-        return jdbc.queryForList(query, Long.class, ids.toArray());
-    }
-
-    /*
-    private static RowMapper<User> getUserMapper() {
-        return (resultSet, rowNum) ->
-            new User()
-                    .setId(resultSet.getLong("id"))
-                    .setName(resultSet.getString("name"))
-                    .setEmail(resultSet.getString("email"))
-                    .setLogin(resultSet.getString("login"))
-                    .setBirthday(resultSet.getDate("birthday").toLocalDate());
-    } */
-
-    /*
-    private static User mapper(ResultSet resultSet, int rowNum) throws SQLException {
-        User user = new User();
-        user.setId(resultSet.getLong("id"));
-        user.setName(resultSet.getString("name"));
-        user.setEmail(resultSet.getString("email"));
-        user.setLogin(resultSet.getString("login"));
-        user.setBirthday(resultSet.getDate("birthday").toLocalDate());
-        return user;
-    } */
 
 }

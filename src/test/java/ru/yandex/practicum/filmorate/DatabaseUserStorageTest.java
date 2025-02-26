@@ -21,6 +21,7 @@ public class DatabaseUserStorageTest {
     public void testFindUserById() {
 
         System.out.println("Begin");
+        System.out.println(userStorage.getItems());
         System.out.println("End");
 
     }
