@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -20,23 +22,29 @@ public class InDatabaseFilmStorage implements FilmStorage {
     private final JdbcTemplate jdbc;
     private final RowMapper<Film> mapper;
 
-    private static final String GET_ITEMS = "select *, (select count(user_id) from likes where film_id = id) as likes from films";
-    private static final String GET_ITEM = "select *, (select count(user_id) from likes where film_id = id) as likes from films where id = ?";
-    private static final String INSERT_QUERY = "insert into films(name, description, release_date, duration, mpa) values (?, ?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "update films set name = ?, description = ?, release_date = ?, duration = ?, mpa = ? where id = ?";
+    private static final String BASE_DATA_QUERY = "select films.*, " +
+            "mpa.name as mpa_name, " +
+            "mpa.description as mpa_description, " +
+            "string_agg(genres.id, ', ') as genre_ids, " +
+            "string_agg(genres.name, ', ') as genre_names, " +
+            "(select count(user_id) from likes where film_id = films.id) as likes " +
+            "from films " +
+            "left join film_genre fg on fg.film_id = films.id " +
+            "left join genres on genres.id = fg.genre_id " +
+            "left join mpa on mpa.id = films.mpa";
+
+    private static final String GET_ITEMS = BASE_DATA_QUERY + " group by films.id";
+    private static final String GET_ITEM = BASE_DATA_QUERY + " where films.id = ? group by films.id";
+    private static final String GET_POPULAR = BASE_DATA_QUERY + " group by films.id order by likes desc limit ?";
+    private static final String INSERT_ITEM = "insert into films(name, description, release_date, duration, mpa) values (?, ?, ?, ?, ?)";
+    private static final String UPDATE_ITEM = "update films set name = ?, description = ?, release_date = ?, duration = ?, mpa = ? where id = ?";
+
     private static final String SET_LIKE = "insert into likes(film_id, user_id) values(?, ?)";
     private static final String REMOVE_LIKE = "delete from likes where film_id = ? and user_id = ?";
     private static final String GET_LIKES = "select user_id from likes where film_id = ?";
-    private static final String GET_POPULAR = "select t1.*, count(t2.user_id) as likes " +
-            "from films t1 " +
-            "left join likes t2 on t2.film_id = t1.id " +
-            "group by t1.id " +
-            "order by likes desc " +
-            "limit ?";
 
     private static final String SET_GENRE = "insert into film_genre(film_id, genre_id) values(?, ?)";
     private static final String REMOVE_GENRES = "delete from film_genre where film_id = ?";
-    private static final String GET_GENRES = "select genre_id from film_genre where film_id = ?";
 
     public InDatabaseFilmStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         this.jdbc = jdbc;
@@ -47,19 +55,23 @@ public class InDatabaseFilmStorage implements FilmStorage {
     public Film create(Film entity) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(INSERT_QUERY, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(INSERT_ITEM, Statement.RETURN_GENERATED_KEYS);
             ps.setObject(1, entity.getName());
             ps.setObject(2, entity.getDescription());
             ps.setObject(3, entity.getReleaseDate());
             ps.setObject(4, entity.getDuration());
-            ps.setObject(5, entity.getMpa());
+
+            Mpa mpa = entity.getMpa();
+            Long mpaId = (mpa != null) ? mpa.getId() : null;
+            ps.setObject(5, mpaId);
+
             return ps;
         }, keyHolder);
         Long id = keyHolder.getKeyAs(Long.class);
         if (id != null) {
             entity.setId(id);
-            for (Long genreId : entity.getGenre()) {
-                jdbc.update(SET_GENRE, id, genreId);
+            for (Genre genre : entity.getGenres()) {
+                jdbc.update(SET_GENRE, id, genre.getId());
             }
             return entity;
         } else {
@@ -69,11 +81,13 @@ public class InDatabaseFilmStorage implements FilmStorage {
 
     @Override
     public Film update(Film entity) {
-        int rowsUpdated = jdbc.update(UPDATE_QUERY, entity.getName(), entity.getDescription(), entity.getReleaseDate(), entity.getDuration(), entity.getMpa(), entity.getId());
+        Mpa mpa = entity.getMpa();
+        Long mpaId = (mpa != null) ? mpa.getId() : null;
+        int rowsUpdated = jdbc.update(UPDATE_ITEM, entity.getName(), entity.getDescription(), entity.getReleaseDate(), entity.getDuration(), mpaId, entity.getId());
         if (rowsUpdated > 0) {
             jdbc.update(REMOVE_GENRES, entity.getId());
-            for (Long genreId : entity.getGenre()) {
-                jdbc.update(SET_GENRE, entity.getId(), genreId);
+            for (Genre genre : entity.getGenres()) {
+                jdbc.update(SET_GENRE, entity.getId(), genre.getId());
             }
             return entity;
         } else {
@@ -84,10 +98,6 @@ public class InDatabaseFilmStorage implements FilmStorage {
     @Override
     public Collection<Film> getItems() {
         Collection<Film> items = jdbc.query(GET_ITEMS, mapper);
-        for (Film film : items) {
-            List<Long> genreIds = jdbc.queryForList(GET_GENRES, Long.class, film.getId());
-            film.setGenre(new HashSet<>(genreIds));
-        }
         return items;
     }
 
@@ -100,10 +110,6 @@ public class InDatabaseFilmStorage implements FilmStorage {
             film.setLikes(likes);
         } */
         Film film = jdbc.queryForObject(GET_ITEM, mapper, filmId);
-        if (film != null) {
-            List<Long> genreIds = jdbc.queryForList(GET_GENRES, Long.class, filmId);
-            film.setGenre(new HashSet<>(genreIds));
-        }
         return film;
     }
 
@@ -127,12 +133,7 @@ public class InDatabaseFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getPopular(int count) {
-        Collection<Film> items = jdbc.query(GET_POPULAR, mapper, count);
-        for (Film film : items) {
-            List<Long> genreIds = jdbc.queryForList(GET_GENRES, Long.class, film.getId());
-            film.setGenre(new HashSet<>(genreIds));
-        }
-        return items;
+        return jdbc.query(GET_POPULAR, mapper, count);
     }
 
     public Set<Long> getLikes(Long filmId) {
@@ -150,13 +151,5 @@ public class InDatabaseFilmStorage implements FilmStorage {
         query += ")";
         return jdbc.queryForList(query, Long.class, ids.toArray());
     }
-
-    /*
-    public List<Long> setGenresQuery(Long filmId, Set<Long> genreIds) {
-        String query = "insert into film_genre(film_id, genre_id) values";
-        query += String.join(",", Collections.nCopies(genreIds.size(), "(" + filmId + ",?)"));
-        int res = jdbc.update(query, genreIds);
-        return null;
-    } */
 
 }
