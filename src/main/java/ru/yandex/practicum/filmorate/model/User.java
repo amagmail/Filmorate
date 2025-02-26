@@ -14,8 +14,6 @@ public class User {
     private String name;
     private Set<Long> friends = new HashSet<>();
 
-    //private Map<Long, String> friendship = new HashMap<>();
-
     @NotNull
     @NotBlank
     @Email

@@ -14,7 +14,7 @@ public class Film {
     private Long id;
     private Set<Long> likes = new HashSet<>();
 
-    private Integer genre;
+    private Set<Long> genre = new HashSet<>();
     private Integer mpa;
 
     @NotNull

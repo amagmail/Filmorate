@@ -6,14 +6,12 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Primary
 @Component
@@ -85,7 +83,7 @@ public class InDatabaseUserStorage implements UserStorage {
         if (rowsUpdated > 0) {
             return entity;
         } else {
-            throw new InternalServerException("Не удалось обновить данные");
+            throw new NotFoundException("Пользователя с идентификатором " + entity.getId() + " не существует");
         }
     }
 
@@ -101,6 +99,10 @@ public class InDatabaseUserStorage implements UserStorage {
 
     @Override
     public Set<Long> setFriend(Long userId, Long friendId) {
+        List<Long> checkVals = checkItemsQuery(List.of(userId, friendId));
+        if (checkVals.size() != 2) {
+            throw new NotFoundException("Не удалось найти пользователя");
+        }
         Set<Long> friends = getFriends(userId);
         if (!friends.contains(friendId)) {
             int rowsUpdated = jdbc.update(SET_FRIEND, userId, friendId);
@@ -114,6 +116,10 @@ public class InDatabaseUserStorage implements UserStorage {
 
     @Override
     public Set<Long> removeFriend(Long userId, Long friendId) {
+        List<Long> checkVals = checkItemsQuery(List.of(userId, friendId));
+        if (checkVals.size() != 2) {
+            throw new NotFoundException("Не удалось найти пользователя");
+        }
         int rowsUpdated = jdbc.update(REMOVE_FRIEND, userId, friendId);
         if (rowsUpdated > 0) {
             jdbc.update(ACTUALIZE_FRIENDSHIPS_FALSE, userId, friendId, friendId, userId, userId, friendId, friendId, userId);
@@ -123,6 +129,10 @@ public class InDatabaseUserStorage implements UserStorage {
 
     @Override
     public Collection<User> getUserFriends(Long userId) {
+        List<Long> checkVals = checkItemsQuery(List.of(userId));
+        if (checkVals.isEmpty()) {
+            throw new NotFoundException("Не удалось найти пользователя");
+        }
         return jdbc.query(GET_USER_FRIENDS, mapper, userId);
     }
 
@@ -135,5 +145,34 @@ public class InDatabaseUserStorage implements UserStorage {
         List<Long> userIds = jdbc.queryForList(GET_FRIENDS, Long.class, userId);
         return new HashSet<>(userIds);
     }
+
+    public List<Long> checkItemsQuery(List<Long> ids) {
+        String query = "select id from users where id in (";
+        query += String.join(",", Collections.nCopies(ids.size(), "?"));
+        query += ")";
+        return jdbc.queryForList(query, Long.class, ids.toArray());
+    }
+
+    /*
+    private static RowMapper<User> getUserMapper() {
+        return (resultSet, rowNum) ->
+            new User()
+                    .setId(resultSet.getLong("id"))
+                    .setName(resultSet.getString("name"))
+                    .setEmail(resultSet.getString("email"))
+                    .setLogin(resultSet.getString("login"))
+                    .setBirthday(resultSet.getDate("birthday").toLocalDate());
+    } */
+
+    /*
+    private static User mapper(ResultSet resultSet, int rowNum) throws SQLException {
+        User user = new User();
+        user.setId(resultSet.getLong("id"));
+        user.setName(resultSet.getString("name"));
+        user.setEmail(resultSet.getString("email"));
+        user.setLogin(resultSet.getString("login"));
+        user.setBirthday(resultSet.getDate("birthday").toLocalDate());
+        return user;
+    } */
 
 }

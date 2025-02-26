@@ -32,5 +32,9 @@ create table if not exists mpa (
     name nvarchar(255),
     description nvarchar(255)
 );
+create table if not exists film_genre (
+    film_id bigint,
+    genre_id bigint
+);
 
 
