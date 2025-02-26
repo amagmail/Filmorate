@@ -7,8 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.InDatabaseUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.mappers.UserRowMapper;
+
+import java.time.LocalDate;
 
 @JdbcTest
 @AutoConfigureTestDatabase
@@ -21,14 +24,17 @@ public class DatabaseUserStorageTest {
     @Test
     public void test() {
 
-        // База не подключается при интеграционном тестировании, поэтому оставил код в таком виде
-        // С самой базой все хорошо, подключаюсь к нему через DBeaver и проверяю работу с данными
-        // Приложение так же успешно проходит все автотесты из Postman созданные для текущего спринта
         System.out.println("Begin");
-        System.out.println(userStorage.getItems());
-        Assertions.assertTrue(userStorage.getItems().isEmpty());
-        System.out.println("End");
+        User user = new User();
+        user.setLogin("test");
+        user.setEmail("test@mail.ru");
+        user.setName("test");
+        user.setBirthday(LocalDate.of(2000, 1, 1));
 
+        User userRes = userStorage.create(user);
+        Assertions.assertNotNull(userRes.getId());
+        System.out.println(userStorage.getItems());
+        System.out.println("End");
     }
 
 }
