@@ -46,9 +46,7 @@ public class InDatabaseUserStorage implements UserStorage {
             "and exists(select user_id, friend_id from friendship where user_id = ? and friend_id = ?)";
 
     private static final String ACTUALIZE_FRIENDSHIPS_FALSE = "update friendship set accepted = false " +
-            "where ((user_id = ? and friend_id = ?) or (user_id = ? and friend_id = ?)) " +
-            "and (not exists(select user_id, friend_id from friendship where user_id = ? and friend_id = ?) " +
-            "or not exists(select user_id, friend_id from friendship where user_id = ? and friend_id = ?))";
+            "where user_id = ? and friend_id = ?";
 
     public InDatabaseUserStorage(JdbcTemplate jdbc, RowMapper<User> mapper) {
         this.jdbc = jdbc;
@@ -123,7 +121,7 @@ public class InDatabaseUserStorage implements UserStorage {
         }
         int rowsUpdated = jdbc.update(REMOVE_FRIEND, userId, friendId);
         if (rowsUpdated > 0) {
-            jdbc.update(ACTUALIZE_FRIENDSHIPS_FALSE, userId, friendId, friendId, userId, userId, friendId, friendId, userId);
+            jdbc.update(ACTUALIZE_FRIENDSHIPS_FALSE, friendId, userId);
         }
         return getFriends(userId);
     }
