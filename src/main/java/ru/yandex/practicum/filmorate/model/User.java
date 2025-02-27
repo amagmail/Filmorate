@@ -3,11 +3,14 @@ package ru.yandex.practicum.filmorate.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@NoArgsConstructor
 public class User {
 
     private Long id;
@@ -31,10 +34,6 @@ public class User {
     public User(String login, String email) {
         this.login = login;
         this.email = email;
-    }
-
-    public User() {
-
     }
 
 }

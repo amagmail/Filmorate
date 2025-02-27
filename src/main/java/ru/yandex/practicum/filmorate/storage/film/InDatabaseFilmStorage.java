@@ -55,24 +55,8 @@ public class InDatabaseFilmStorage implements FilmStorage {
     @Override
     public Film create(Film entity) {
 
-        List<Long> checkVals;
-        Mpa mpa = entity.getMpa();
-        Long mpaId = (mpa != null) ? mpa.getId() : null;
-        if (mpaId != null) {
-            checkVals = DatabaseUtils.getExistRows(jdbc, "mpa", List.of(mpaId));
-            if (checkVals.isEmpty()) {
-                throw new NotFoundException("Не удалось найти жанры по идентификаторам");
-            }
-        }
-
-        Set<Long> genreIds = new HashSet<>();
-        for (Genre genre : entity.getGenres()) {
-            genreIds.add(genre.getId());
-        }
-        checkVals = DatabaseUtils.getExistRows(jdbc, "mpa", new ArrayList<>(genreIds));
-        if (checkVals.size() != genreIds.size()) {
-            throw new NotFoundException("Не удалось найти жанры по идентификаторам");
-        }
+        Long mpaId = getValidMpaId(entity.getMpa());
+        Set<Long> genreIds = getValidGenreIds(entity.getGenres());
 
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
@@ -98,13 +82,15 @@ public class InDatabaseFilmStorage implements FilmStorage {
 
     @Override
     public Film update(Film entity) {
-        Mpa mpa = entity.getMpa();
-        Long mpaId = (mpa != null) ? mpa.getId() : null;
+
+        Long mpaId = getValidMpaId(entity.getMpa());
+        Set<Long> genreIds = getValidGenreIds(entity.getGenres());
+
         int rowsUpdated = jdbc.update(UPDATE_ITEM, entity.getName(), entity.getDescription(), entity.getReleaseDate(), entity.getDuration(), mpaId, entity.getId());
         if (rowsUpdated > 0) {
             jdbc.update(REMOVE_GENRES, entity.getId());
-            for (Genre genre : entity.getGenres()) {
-                jdbc.update(SET_GENRE, entity.getId(), genre.getId());
+            for (Long genreId : genreIds) {
+                jdbc.update(SET_GENRE, entity.getId(), genreId);
             }
             return entity;
         } else {
@@ -152,6 +138,29 @@ public class InDatabaseFilmStorage implements FilmStorage {
         }
         List<Long> userIds = jdbc.queryForList(GET_LIKES, Long.class, filmId);
         return new HashSet<>(userIds);
+    }
+
+    private Long getValidMpaId(Mpa mpa) {
+        Long mpaId = (mpa != null) ? mpa.getId() : null;
+        if (mpaId != null) {
+            List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "mpa", List.of(mpaId));
+            if (checkVals.isEmpty()) {
+                throw new NotFoundException("Не удалось найти рейтинги по идентификаторам");
+            }
+        }
+        return mpaId;
+    }
+
+    private Set<Long> getValidGenreIds(Set<Genre> genres) {
+        Set<Long> genreIds = new HashSet<>();
+        for (Genre genre : genres) {
+            genreIds.add(genre.getId());
+        }
+        List<Long> checkVals = DatabaseUtils.getExistRows(jdbc, "genres", new ArrayList<>(genreIds));
+        if (checkVals.size() != genreIds.size()) {
+            throw new NotFoundException("Не удалось найти жанры по идентификаторам");
+        }
+        return genreIds;
     }
 
 }
